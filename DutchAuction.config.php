@@ -1,11 +1,11 @@
 <?php namespace ProcessWire;
 
 $tmpTemplates = wire('templates');
-
+$auctionTemplates = array();
 foreach($tmpTemplates as $template) { // exclude system templates
   if($template->flags & Template::flagSystem) continue;
-  $templates[] = $template;
-    }
+  $auctionTemplates[$template->id] = $template;
+}
 
 $config = array(
   'auctionLength' => array(
@@ -26,7 +26,7 @@ $config = array(
   ),
   'auctionTemplates' => array(
     'type' => 'InputfieldAsmSelect',
-    'options' => $templates,
+    'options' => $auctionTemplates,
     'label' => __('Auction templates'),
     'description' => __('Select the templates for the auctions'),
     'value' => '1',
