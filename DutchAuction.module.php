@@ -110,14 +110,16 @@ class DutchAuction extends WireData implements Module {
 		$seconds = $e->arguments[0];
 		wire('log')->save('dutchauction', 'updatePrices triggered by cron (' . $seconds .' seconds  sinds last run...)');
 		$auctioncouter = 0;
-		foreach(pages()->find("template=$this->auctionTemplates, parent=/auctions/") as $auction):
-			$date_published = gmdate('Y-m-d\TH:i:s', $auction->published);
-			$currentPrice = $this->currentPrice($date_published, $auction->maxprice, $auction->minprice);
-			$auction->currentprice = $currentPrice;
-			$auction->of(false);
-			$auction->save();
-			$auction->of(true);
-			$auctioncouter ++;
+		foreach($this->auctionTemplates as $auctiontemplate):
+			foreach(pages()->find("template=$auctiontemplate, parent=/auction/") as $auction):
+				$date_published = gmdate('Y-m-d\TH:i:s', $auction->published);
+				$currentPrice = $this->currentPrice($date_published, $auction->maxprice, $auction->minprice);
+				$auction->currentprice = $currentPrice;
+				$auction->of(false);
+				$auction->save();
+				$auction->of(true);
+				$auctioncouter ++;
+			endforeach;
 		endforeach;
 		wire('log')->save('dutchauction', 'Updated ' . $auctioncouter .' auction prices');
 	}
