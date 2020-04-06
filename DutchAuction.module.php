@@ -108,10 +108,11 @@ class DutchAuction extends WireData implements Module {
 	// updates the prices by cron every 5 minutes
 	protected function updatePrices(HookEvent $e) {
 		$seconds = $e->arguments[0];
+		$startTime = microtime(true);
 		wire('log')->save('dutchauction', 'updatePrices triggered by cron (' . $seconds .' seconds  sinds last run...)');
 		$auctioncouter = 0;
 		foreach($this->auctionTemplates as $auctiontemplate):
-			foreach(pages()->find("template=$auctiontemplate, parent=/auction/") as $auction):
+			foreach(pages()->find("template=$auctiontemplate") as $auction):
 				$date_published = gmdate('Y-m-d\TH:i:s', $auction->published);
 				$currentPrice = $this->currentPrice($date_published, $auction->maxprice, $auction->minprice);
 				$auction->currentprice = $currentPrice;
@@ -121,12 +122,13 @@ class DutchAuction extends WireData implements Module {
 				$auctioncouter ++;
 			endforeach;
 		endforeach;
-		wire('log')->save('dutchauction', 'Updated ' . $auctioncouter .' auction prices');
+		wire('log')->save('dutchauction', 'Updated ' . $auctioncouter .' auction prices in '. (microtime(true) - $startTime) . ' seconds');
 	}
 
 	// Archive auctions older than auctionLength
 	protected function archiveAuctions(HookEvent $e) {
 		$seconds = $e->arguments[0];
+		$startTime = microtime(true);
 		wire('log')->save('dutchauction', 'archiveAuctions triggered by cron (' . $seconds .' seconds  sinds last run...)');
 		$auctioncouter = 0;
 
@@ -178,9 +180,8 @@ class DutchAuction extends WireData implements Module {
 			$archiveParentDayNow->save();
 			wire('log')->save('dutchauction', 'Created ' . $archiveParentDayNow .' page');
 		}
-
 		
-		foreach(pages()->find("template=auction, parent=/auctions/") as $auction):
+		foreach(pages()->find("template=$auctiontemplate") as $auction):
 			if($auction->published < $dtArchive){
 				$auction->parent = $archiveParentDayNow;
 				$auction->addStatus(Page::statusUnpublished);;
@@ -190,7 +191,7 @@ class DutchAuction extends WireData implements Module {
 				$auctioncouter ++;
 			}
 		endforeach;
-		wire('log')->save('dutchauction', 'Archived ' . $auctioncouter .' auctions');
+		wire('log')->save('dutchauction', 'Archived ' . $auctioncouter .' auctions in '. (microtime(true) - $startTime) . ' seconds');
 	}
 
 
